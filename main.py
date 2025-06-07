@@ -27,6 +27,12 @@ def scan_roles(location: str = Query("London")):
     """Return recent public policy jobs scraped from Indeed."""
     return fetch_jobs(location)
 
+<<<< codex/define-root-endpoint
+
+@app.get("/")
+def root():
+    return {"message": "Lisa Job GPT Backend is live 🚀"}
+====
 # Add a root endpoint to fix the Render 404
 @app.get("/")
 def root():
@@ -42,3 +48,4 @@ def get_filtered_jobs(location: str = None):
         preferences["location"] = location
     jobs = fetch_jobs()
     return filter_jobs(jobs, preferences)
+>>> main
