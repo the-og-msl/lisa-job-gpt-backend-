@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Query
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 import datetime
+
+from scrapers.indeed_scraper import fetch_jobs
+from utils.filter_engine import filter_jobs
 
 app = FastAPI(
     title="Lisa's Strategic Job Scanner",
@@ -28,21 +31,28 @@ class Job(BaseModel):
     posted_date: str
 
 @app.get("/scan-roles/", response_model=List[Job])
-def scan_roles(location: str = Query("London")):
+def scan_roles(query: str = Query("policy"), location: str = Query("London")):
+    """Return filtered jobs for the given query and location."""
+    jobs: List[Dict] = fetch_jobs(query, location)
+    filtered = filter_jobs(jobs)
+
     today = datetime.datetime.now().date()
-    return [
-        Job(
-            title="Senior Policy Advisor",
-            company="HM Treasury",
-            location="London",
-            description="Develop and lead economic strategy workstreams with ministers.",
-            requirements=["Masters in Economics", "5+ years in policy", "UK public sector exposure"],
-            skills=["Policy Analysis", "Public Finance", "Stakeholder Management"],
-            fit_score=9,
-            why_fit="Direct policy impact, public-private overlap, aligns with UK gov pivot.",
-            red_flags="May require UK gov reference.",
-            link="https://example.com/hmt-senior-policy-advisor",
-            salary_range="£65,000–£85,000",
-            posted_date=str(today)
+    results: List[Job] = []
+    for job in filtered:
+        results.append(
+            Job(
+                title=job.get("title", ""),
+                company=job.get("company", ""),
+                location=job.get("location", ""),
+                description=job.get("description", ""),
+                requirements=job.get("requirements", []),
+                skills=job.get("skills", []),
+                fit_score=10,
+                why_fit="",  # In a real app calculate the reason
+                red_flags="",  # In a real app expose any issues
+                link=job.get("link", ""),
+                salary_range=job.get("salary_range", ""),
+                posted_date=str(today),
+            )
         )
-    ]
+    return results
