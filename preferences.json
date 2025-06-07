@@ -1,0 +1,8 @@
+{
+  "location": "London",
+  "exclusion_terms": {
+    "title": ["intern", "volunteer", "contract"],
+    "organization": ["scamorg", "badcompany"],
+    "red_flags": ["unpaid", "visa sponsorship unavailable"]
+  }
+}
