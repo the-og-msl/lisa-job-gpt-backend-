@@ -68,3 +68,8 @@ def fetch_jobs(location: str = "London") -> List[Job]:
 def scan_roles(location: str = Query("London")):
     """Return recent public policy jobs scraped from Indeed."""
     return fetch_jobs(location)
+
+
+@app.get("/")
+def root():
+    return {"message": "Lisa Job GPT Backend is live 🚀"}
