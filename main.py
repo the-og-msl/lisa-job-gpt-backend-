@@ -2,6 +2,8 @@ from fastapi import FastAPI, Query
 from pydantic import BaseModel
 from typing import List
 import datetime
+import requests
+from bs4 import BeautifulSoup
 
 app = FastAPI(
     title="Lisa's Strategic Job Scanner",
@@ -27,22 +29,42 @@ class Job(BaseModel):
     salary_range: str
     posted_date: str
 
+
+def fetch_jobs(location: str = "London") -> List[Job]:
+    """Scrape public policy jobs from Indeed for the given location."""
+    url = f"https://uk.indeed.com/jobs?q=public+policy&l={location}"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    resp = requests.get(url, headers=headers, timeout=10)
+    soup = BeautifulSoup(resp.text, "html.parser")
+
+    jobs = []
+    for card in soup.select(".job_seen_beacon")[:10]:
+        try:
+            title = card.select_one("h2.jobTitle").get_text(strip=True)
+            company = card.select_one(".companyName").get_text(strip=True)
+            link = "https://uk.indeed.com" + card.select_one("a")["href"]
+
+            jobs.append(
+                Job(
+                    title=title,
+                    company=company,
+                    location=location,
+                    description="",
+                    requirements=[],
+                    skills=[],
+                    fit_score=0,
+                    why_fit="",
+                    red_flags="",
+                    link=link,
+                    salary_range="",
+                    posted_date=str(datetime.date.today()),
+                )
+            )
+        except Exception:
+            continue
+    return jobs
+
 @app.get("/scan-roles/", response_model=List[Job])
 def scan_roles(location: str = Query("London")):
-    today = datetime.datetime.now().date()
-    return [
-        Job(
-            title="Senior Policy Advisor",
-            company="HM Treasury",
-            location="London",
-            description="Develop and lead economic strategy workstreams with ministers.",
-            requirements=["Masters in Economics", "5+ years in policy", "UK public sector exposure"],
-            skills=["Policy Analysis", "Public Finance", "Stakeholder Management"],
-            fit_score=9,
-            why_fit="Direct policy impact, public-private overlap, aligns with UK gov pivot.",
-            red_flags="May require UK gov reference.",
-            link="https://example.com/hmt-senior-policy-advisor",
-            salary_range="£65,000–£85,000",
-            posted_date=str(today)
-        )
-    ]
+    """Return recent public policy jobs scraped from Indeed."""
+    return fetch_jobs(location)
