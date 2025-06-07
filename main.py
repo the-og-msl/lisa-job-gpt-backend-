@@ -15,6 +15,11 @@ app = FastAPI(
     }]
 )
 
+
+@app.get("/")
+def root():
+    return {"message": "Lisa Job GPT Backend is live 🚀"}
+
 class Job(BaseModel):
     title: str
     company: str
