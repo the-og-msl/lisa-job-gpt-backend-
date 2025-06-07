@@ -73,3 +73,9 @@ def fetch_jobs(location: str = "London") -> List[Job]:
 def scan_roles(location: str = Query("London")):
     """Return recent public policy jobs scraped from Indeed."""
     return fetch_jobs(location)
+
+# Add a root endpoint to fix the Render 404
+@app.get("/")
+def root():
+    """Health check route for Render."""
+    return {"message": "Lisa GPT Backend is live!"}
