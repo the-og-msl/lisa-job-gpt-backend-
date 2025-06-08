@@ -34,12 +34,36 @@ def get_jobs(
         default="jobspy",
         description="Data source ('jobspy' or 'civil_service')",
     ),
+    limit: int = Query(
+        default=15,
+        description="Maximum number of results to return",
+    ),
+    offset: int = Query(
+        default=0,
+        description="Number of results to skip before returning data",
+    ),
 ):
-    """Return job listings from either JobSpy or the Civil Service site."""
+    """Return job listings from either JobSpy or the Civil Service site.
+
+    Parameters
+    ----------
+    keyword: str
+        Search keyword to filter results.
+    location: str
+        City or region to search within.
+    source: str
+        Data source to use, either ``jobspy`` or ``civil_service``.
+    limit: int
+        Maximum number of results to return (default ``15``).
+    offset: int
+        Number of results to skip before starting the slice (default ``0``).
+    """
     if source == "jobspy":
         return fetch_jobspy_jobs(keyword=keyword, location=location)
 
     try:
-        return fetch_civil_service_jobs(keyword=keyword, location=location)
+        jobs = fetch_civil_service_jobs(keyword=keyword, location=location)
     except Exception:
-        return fetch_fallback_jobs(keyword=keyword, location=location)
+        jobs = fetch_fallback_jobs(keyword=keyword, location=location)
+
+    return jobs[offset: offset + limit]
