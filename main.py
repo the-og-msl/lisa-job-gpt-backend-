@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query
-from scrapers.jobspy_scraper import fetch_jobs
+from scrapers.civil_service_scraper import fetch_jobs as fetch_civil_service_jobs
+from scrapers.indeed_scraper import fetch_jobs as fetch_fallback_jobs
 
 app = FastAPI(
     title="Lisa's Strategic Job Scanner",
@@ -28,5 +29,11 @@ def get_jobs(
         default="london", description="Location to filter by (e.g. 'London')"
     ),
 ):
-    """Return job listings scraped from the Civil Service site."""
-    return fetch_jobs(keyword=keyword, location=location)
+    """Return job listings from the Civil Service site.
+
+    Falls back to a simpler RSS-based scraper if the primary scraper fails.
+    """
+    try:
+        return fetch_civil_service_jobs(keyword=keyword, location=location)
+    except Exception:
+        return fetch_fallback_jobs(keyword=keyword, location=location)
