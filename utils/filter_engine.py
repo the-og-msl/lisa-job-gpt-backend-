@@ -7,20 +7,21 @@ def load_preferences(path="preferences.json"):
 
 
 def filter_jobs(jobs, preferences):
+    """Filter job listings based on simple preference criteria."""
     filtered = []
     for job in jobs:
         title = job["title"].lower()
-        org = job["company"].lower()
-        description = job["description"].lower()
+        org = job.get("organization", job.get("company", "")).lower()
+        description = job.get("description", "").lower()
         red_flags = job.get("red_flags", "").lower()
 
-        if any(term.lower() in title for term in preferences["exclusion_terms"]["title"]):
+        # Include jobs that match any preferred keywords in the title or description
+        keywords = [k.lower() for k in preferences.get("keywords", [])]
+        if keywords and not any(k in title or k in description for k in keywords):
             continue
-        if any(term.lower() in org for term in preferences["exclusion_terms"]["organization"]):
-            continue
-        if any(term.lower() in red_flags for term in preferences["exclusion_terms"]["red_flags"]):
-            continue
-        if preferences["location"].lower() not in job["location"].lower():
+
+        # Skip jobs that do not match the preferred location
+        if "location" in preferences and preferences["location"].lower() not in job["location"].lower():
             continue
 
         filtered.append(job)
