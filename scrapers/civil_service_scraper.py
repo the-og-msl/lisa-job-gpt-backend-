@@ -1,65 +1,41 @@
 import requests
 from bs4 import BeautifulSoup
-from typing import List, Dict, Optional
+from datetime import date
 
-SAMPLE_HTML = """
-<div class="jobSummary">
-  <h3><a href="/example1">Policy Advisor</a></h3>
-  <span class="jobLocation">London</span>
-  <span class="jobSalary">£40,000</span>
-</div>
-<div class="jobSummary">
-  <h3><a href="/example2">Senior Economist</a></h3>
-  <span class="jobLocation">London</span>
-  <span class="jobSalary">£60,000</span>
-</div>
-"""
-
-
-def fetch_jobs(keyword: Optional[str] = None, location: Optional[str] = None) -> List[Dict[str, str]]:
-    """Scrape Civil Service job listings using the search form."""
-    search_url = "https://www.civilservicejobs.service.gov.uk/csr/index.cgi"
+def fetch_jobs(keyword="policy", location="london"):
+    url = "https://www.civilservicejobs.service.gov.uk/csr/index.cgi"
     params = {
-        "SID": "Y2FudGVyaWRhdGVfdXNlcg==",
-        "txtKeyword": keyword or "",
-        "txtLocation": location or "",
-        "order": "1",
-        "x": "0",
-        "y": "0",
+        "SID": "YXBpX3NlYXJjaF9mb3Jt",
+        "jcode": "",
+        "txtSearch": keyword,
+        "postcode": location,
+        "radius": "10",
+        "submit1": "Search"
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (JobScannerBot)"
     }
 
-    try:
-        response = requests.get(search_url, params=params, timeout=10)
-        response.raise_for_status()
-        html = response.text
-    except Exception:
-        html = SAMPLE_HTML
+    response = requests.get(url, params=params, headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+    results = []
 
-    soup = BeautifulSoup(html, "html.parser")
+    for row in soup.select("div.results div.job"):
+        title_elem = row.select_one("h3 a")
+        org_elem = row.select_one("div.org")
+        loc_elem = row.select_one("div.location")
+        summary_elem = row.select_one("div.summary")
 
-    jobs: List[Dict[str, str]] = []
-    postings = soup.select("div.jobSummary")
-    for post in postings:
-        title_tag = post.find("h3")
-        title = title_tag.get_text(strip=True) if title_tag else "No title"
+        job_url = "https://www.civilservicejobs.service.gov.uk" + title_elem.get("href")
 
-        location_tag = post.select_one(".jobLocation")
-        loc = location_tag.get_text(strip=True) if location_tag else "Unknown"
-
-        salary_tag = post.select_one(".jobSalary")
-        salary = salary_tag.get_text(strip=True) if salary_tag else "N/A"
-
-        link_tag = post.find("a", href=True)
-        link = (
-            f"https://www.civilservicejobs.service.gov.uk{link_tag['href']}"
-            if link_tag else "N/A"
-        )
-
-        jobs.append({
-            "title": title,
-            "location": loc,
-            "salary": salary,
-            "link": link,
+        results.append({
+            "title": title_elem.text.strip() if title_elem else "N/A",
+            "organization": org_elem.text.strip() if org_elem else "N/A",
+            "location": loc_elem.text.strip() if loc_elem else "N/A",
+            "description": summary_elem.text.strip() if summary_elem else "N/A",
+            "red_flags": "",
+            "link": job_url,
+            "posted_date": str(date.today())
         })
 
-    return jobs
+    return results
