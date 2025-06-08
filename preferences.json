@@ -1,0 +1,8 @@
+{
+  "location": "london",
+  "exclusion_terms": {
+    "title": ["intern", "assistant"],
+    "organization": ["bank", "insurance"],
+    "red_flags": ["clearance", "unpaid", "commission"]
+  }
+}

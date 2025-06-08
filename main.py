@@ -1,70 +1,27 @@
-from fastapi import FastAPI, Query
-from pydantic import BaseModel
-from typing import List
-import datetime
-import requests
-from bs4 import BeautifulSoup
+from fastapi import FastAPI
+from typing import Optional
 
-app = FastAPI(
-    title="Lisa's Strategic Job Scanner",
-    description="Filters public sector and multilateral roles based on Lisa Mouslech’s career direction.",
-    version="1.0.0",
-    servers=[{
-        "url": "https://lisa-job-gpt-backend.onrender.com",
-        "description": "Live Render server"
-    }]
-)
-
-class Job(BaseModel):
-    title: str
-    company: str
-    location: str
-    description: str
-    requirements: List[str]
-    skills: List[str]
-    fit_score: int
-    why_fit: str
-    red_flags: str
-    link: str
-    salary_range: str
-    posted_date: str
+from scrapers.indeed_scraper import fetch_jobs
+from utils.filter_engine import filter_jobs, load_preferences
 
 
-def fetch_jobs(location: str = "London") -> List[Job]:
-    """Scrape public policy jobs from Indeed for the given location."""
-    url = f"https://uk.indeed.com/jobs?q=public+policy&l={location}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    resp = requests.get(url, headers=headers, timeout=10)
-    soup = BeautifulSoup(resp.text, "html.parser")
+app = FastAPI(title="Lisa's Strategic Job Scanner")
 
-    jobs = []
-    for card in soup.select(".job_seen_beacon")[:10]:
-        try:
-            title = card.select_one("h2.jobTitle").get_text(strip=True)
-            company = card.select_one(".companyName").get_text(strip=True)
-            link = "https://uk.indeed.com" + card.select_one("a")["href"]
 
-            jobs.append(
-                Job(
-                    title=title,
-                    company=company,
-                    location=location,
-                    description="",
-                    requirements=[],
-                    skills=[],
-                    fit_score=0,
-                    why_fit="",
-                    red_flags="",
-                    link=link,
-                    salary_range="",
-                    posted_date=str(datetime.date.today()),
-                )
-            )
-        except Exception:
-            continue
-    return jobs
+@app.get("/")
+def root():
+    return {"message": "Lisa Job GPT Backend is live 🚀"}
 
-@app.get("/scan-roles/", response_model=List[Job])
-def scan_roles(location: str = Query("London")):
-    """Return recent public policy jobs scraped from Indeed."""
-    return fetch_jobs(location)
+
+@app.get("/scan-roles")
+def scan_roles(location: Optional[str] = None):
+    """Return job listings filtered by user preferences."""
+    preferences = load_preferences()
+    jobs = fetch_jobs()
+
+    if location:
+        preferences["location"] = location.lower()
+
+    filtered = filter_jobs(jobs, preferences)
+    return filtered
+

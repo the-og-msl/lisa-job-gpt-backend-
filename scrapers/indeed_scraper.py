@@ -4,21 +4,21 @@ from datetime import date
 def fetch_jobs():
     return [
         {
-            "title": "Strategic Investment Manager",
-            "company": "UK Infrastructure Bank",
-            "location": "London",
-            "description": "Leads strategic finance initiatives...",
-            "red_flags": "UK nationals only",
-            "link": "https://example.com/job-1",
+            "title": "Policy Analyst",
+            "organization": "Department of Energy",
+            "description": "Climate strategy and green finance...",
+            "location": "london",
+            "red_flags": "",
+            "link": "https://example.com/job1",
             "posted_date": str(date.today())
         },
         {
-            "title": "ESG Audit Officer",
-            "company": "Generic Bank",
-            "location": "Remote",
-            "description": "Internal audit responsibilities...",
-            "red_flags": "ACA required",
-            "link": "https://example.com/job-2",
+            "title": "Senior Analyst",
+            "organization": "UK Finance",
+            "description": "Public sector finance, ESG policy...",
+            "location": "remote",
+            "red_flags": "requires UK gov clearance",
+            "link": "https://example.com/job2",
             "posted_date": str(date.today())
         }
     ]
