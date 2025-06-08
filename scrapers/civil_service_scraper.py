@@ -1,11 +1,15 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 from datetime import date
 
+# Allow the Civil Service search SID to be configured via environment variable
+SID = os.getenv("CIVIL_SERVICE_SID", "YXBpX3NlYXJjaF9mb3Jt")
+
 def fetch_jobs(keyword="policy", location="london"):
     url = "https://www.civilservicejobs.service.gov.uk/csr/index.cgi"
     params = {
-        "SID": "YXBpX3NlYXJjaF9mb3Jt",
+        "SID": SID,
         "jcode": "",
         "txtSearch": keyword,
         "postcode": location,
