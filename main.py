@@ -43,7 +43,7 @@ def get_jobs(
         description="Number of results to skip before returning data",
     ),
 ):
-    """Return job listings from either JobSpy or the Civil Service site.
+    """Return filtered job listings with a limited payload for GPT actions.
 
     Parameters
     ----------
@@ -59,11 +59,29 @@ def get_jobs(
         Number of results to skip before starting the slice (default ``0``).
     """
     if source == "jobspy":
-        return fetch_jobspy_jobs(keyword=keyword, location=location)
+        jobs = fetch_jobspy_jobs(keyword=keyword, location=location)
+    else:
+        try:
+            jobs = fetch_civil_service_jobs(keyword=keyword, location=location)
+        except Exception:
+            jobs = fetch_fallback_jobs(keyword=keyword, location=location)
 
-    try:
-        jobs = fetch_civil_service_jobs(keyword=keyword, location=location)
-    except Exception:
-        jobs = fetch_fallback_jobs(keyword=keyword, location=location)
+    jobs = jobs[offset : offset + limit]
 
-    return jobs[offset: offset + limit]
+    trimmed = []
+    for job in jobs:
+        trimmed.append(
+            {
+                "organization": job.get("organization") or job.get("company"),
+                "title": job.get("title"),
+                "location": job.get("location"),
+                "link": job.get("link"),
+                "posted_date": job.get("posted_date") or job.get("published"),
+                "summary": (
+                    job.get("description")
+                    or job.get("summary", "")
+                )[:300],
+            }
+        )
+
+    return trimmed
