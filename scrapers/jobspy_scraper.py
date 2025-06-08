@@ -20,7 +20,9 @@ def fetch_jobs(keyword="policy", location="London"):
         results.append(
             {
                 "title": row["title"],
-                "organization": row["company_name"],
+                "organization": row.get("company_name")
+                or row.get("company")
+                or "Unknown",
                 "location": row["location"],
                 "description": row["description"],
                 "red_flags": "",
