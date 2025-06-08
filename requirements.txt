@@ -4,3 +4,4 @@ pydantic
 requests
 beautifulsoup4
 feedparser
+jobspy==0.29.0

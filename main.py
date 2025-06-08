@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Query
-from scrapers.civil_service_scraper import fetch_jobs
+from scrapers.jobspy_scraper import fetch_jobs
 
 app = FastAPI(
     title="Lisa's Strategic Job Scanner",
