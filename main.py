@@ -20,12 +20,12 @@ def root():
 
 @app.get("/jobs")
 def get_jobs(
-    keyword: str = Query(
-        default=None,
+    keyword: str | None = Query(
+        default="policy",
         description="Search keyword (e.g. 'policy', 'economics', 'finance')",
     ),
-    location: str = Query(
-        default=None, description="Location to filter by (e.g. 'London')"
+    location: str | None = Query(
+        default="london", description="Location to filter by (e.g. 'London')"
     ),
 ):
     """Return job listings scraped from the Civil Service site."""
