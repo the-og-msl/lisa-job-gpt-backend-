@@ -1,7 +1,17 @@
 from fastapi import FastAPI
 from scrapers.indeed_scraper import fetch_jobs
 
-app = FastAPI()
+app = FastAPI(
+    title="Lisa's Strategic Job Scanner",
+    description="Filters public sector and multilateral roles based on Lisa Mouslech's career direction.",
+    version="1.0.0",
+    servers=[
+        {
+            "url": "https://lisa-job-gpt-backend.onrender.com",
+            "description": "Render deployment"
+        }
+    ]
+)
 
 @app.get("/")
 def root():
