@@ -1,9 +1,11 @@
 import feedparser
 
 
-def fetch_jobs(location: str = None):
+def fetch_jobs(keyword: str | None = None, location: str | None = None):
     """Fetch job listings from the Civil Service RSS feed.
-    Optionally filters by keyword if `location` is provided.
+
+    Both ``keyword`` and ``location`` are optional and are used to filter
+    the returned entries if provided.
     """
     url = (
         "https://www.civilservicejobs.service.gov.uk/rss/civilservice/alljobs.rss"
@@ -12,14 +14,20 @@ def fetch_jobs(location: str = None):
 
     jobs = []
     for entry in feed.entries:
-        if location and location.lower() not in entry.title.lower():
+        title = entry.title
+        summary = entry.get("summary", "")
+
+        if keyword and keyword.lower() not in title.lower() and keyword.lower() not in summary.lower():
             continue
+        if location and location.lower() not in title.lower():
+            continue
+
         jobs.append(
             {
-                "title": entry.title,
+                "title": title,
                 "link": entry.link,
                 "published": entry.published,
-                "summary": entry.get("summary", ""),
+                "summary": summary,
             }
         )
     return jobs
