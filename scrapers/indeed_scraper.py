@@ -1,20 +1,25 @@
-import requests
-from bs4 import BeautifulSoup
+import feedparser
 
 
-def fetch_jobs():
-    """Scrape Civil Service job listings (page 1 only)."""
-    url = "https://www.civilservicejobs.service.gov.uk/csr/index.cgi"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
+def fetch_jobs(location: str = None):
+    """Fetch job listings from the Civil Service RSS feed.
+    Optionally filters by keyword if `location` is provided.
+    """
+    url = (
+        "https://www.civilservicejobs.service.gov.uk/rss/civilservice/alljobs.rss"
+    )
+    feed = feedparser.parse(url)
 
     jobs = []
-    for job_row in soup.select(".searchResult .job"):
-        title = job_row.select_one("h3").get_text(strip=True)
-        link = job_row.select_one("a")["href"]
-        jobs.append({
-            "title": title,
-            "link": f"https://www.civilservicejobs.service.gov.uk{link}"
-        })
-
+    for entry in feed.entries:
+        if location and location.lower() not in entry.title.lower():
+            continue
+        jobs.append(
+            {
+                "title": entry.title,
+                "link": entry.link,
+                "published": entry.published,
+                "summary": entry.get("summary", ""),
+            }
+        )
     return jobs
