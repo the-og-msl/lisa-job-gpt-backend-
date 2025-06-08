@@ -22,21 +22,21 @@ def root():
 
 @app.get("/jobs")
 def get_jobs(
-    keyword: str | None = Query(
+    keyword: str = Query(
         default="policy",
         description="Search keyword (e.g. 'policy', 'economics', 'finance')",
     ),
-    location: str | None = Query(
-        default="london", description="Location to filter by (e.g. 'London')",
+    location: str = Query(
+        default="london",
+        description="Location to filter by (e.g. 'London')",
     ),
-    source: str | None = Query(
-        default=None,
+    source: str = Query(
+        default="jobspy",
         description="Data source ('jobspy' or 'civil_service')",
     ),
 ):
     """Return job listings from either JobSpy or the Civil Service site."""
-
-    if source == 'jobspy':
+    if source == "jobspy":
         return fetch_jobspy_jobs(keyword=keyword, location=location)
 
     try:
