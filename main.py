@@ -19,6 +19,14 @@ def root():
     return {"message": "Lisa GPT Backend is live!"}
 
 @app.get("/jobs")
-def get_jobs(keyword: str | None = Query(None), location: str | None = Query(None)):
+def get_jobs(
+    keyword: str = Query(
+        default=None,
+        description="Search keyword (e.g. 'policy', 'economics', 'finance')",
+    ),
+    location: str = Query(
+        default=None, description="Location to filter by (e.g. 'London')"
+    ),
+):
     """Return job listings scraped from the Civil Service site."""
-    return fetch_jobs(keyword, location)
+    return fetch_jobs(keyword=keyword, location=location)
